@@ -64,6 +64,11 @@ class BatchTestConnection implements ConnectionInterface
     {
         return 'mysql';
     }
+
+    public function supportsReturning(): bool
+    {
+        return false;
+    }
 }
 
 function makeBatchNotifiable(
