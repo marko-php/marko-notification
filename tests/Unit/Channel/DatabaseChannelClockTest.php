@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
+use Marko\Database\Config\DatabaseTimezoneConfig;
 use Marko\Database\Connection\ConnectionInterface;
 use Marko\Notification\Channel\DatabaseChannel;
 use Marko\Notification\Contracts\NotifiableInterface;
 use Marko\Notification\Contracts\NotificationInterface;
 use Marko\Testing\Fake\FakeClock;
 
-test('it stamps created_at from the injected clock when sending one notification', function (): void {
+test('it stores created_at in the database timezone whatever the clock timezone', function (): void {
     $capturedBindings = null;
 
     $connection = $this->createMock(ConnectionInterface::class);
@@ -26,13 +27,17 @@ test('it stamps created_at from the injected clock when sending one notification
     $notification = $this->createMock(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn([]);
 
-    $channel = new DatabaseChannel($connection, new FakeClock('2026-03-14 15:09:26'));
+    $channel = new DatabaseChannel(
+        $connection,
+        new FakeClock(new DateTimeImmutable('2026-03-14 11:09:26', new DateTimeZone('America/New_York'))),
+        DatabaseTimezoneConfig::fromName('UTC'),
+    );
     $channel->send($notifiable, $notification);
 
     expect($capturedBindings[6])->toBe('2026-03-14 15:09:26');
 });
 
-test('it stamps created_at from the injected clock for every row of a batch send', function (): void {
+test('it stores created_at in the database timezone for batched notifications', function (): void {
     $captured = [];
 
     $connection = $this->createMock(ConnectionInterface::class);
@@ -54,7 +59,11 @@ test('it stamps created_at from the injected clock for every row of a batch send
     $notification = $this->createMock(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn([]);
 
-    $channel = new DatabaseChannel($connection, new FakeClock('2026-03-14 15:09:26'));
+    $channel = new DatabaseChannel(
+        $connection,
+        new FakeClock(new DateTimeImmutable('2026-03-14 11:09:26', new DateTimeZone('America/New_York'))),
+        DatabaseTimezoneConfig::fromName('UTC'),
+    );
     $channel->sendMany([$first, $second], $notification);
 
     expect($captured)->toHaveCount(1)

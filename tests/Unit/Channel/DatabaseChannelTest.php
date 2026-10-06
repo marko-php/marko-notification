@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Marko\Database\Config\DatabaseTimezoneConfig;
 use Marko\Database\Connection\ConnectionInterface;
 use Marko\Notification\Channel\DatabaseChannel;
 use Marko\Notification\Contracts\ChannelInterface;
@@ -37,7 +38,7 @@ test('it inserts notification record into database', function (): void {
     $notification = $this->createMock(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn(['message' => 'Hello']);
 
-    $channel = new DatabaseChannel($connection, new FakeClock());
+    $channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));
     $channel->send($notifiable, $notification);
 
     expect($capturedSql)->toContain('INSERT INTO notifications')
@@ -63,7 +64,7 @@ test('it stores notification type as class name', function (): void {
     $notification = $this->createMock(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn(['key' => 'value']);
 
-    $channel = new DatabaseChannel($connection, new FakeClock());
+    $channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));
     $channel->send($notifiable, $notification);
 
     // Index 1 is the type column - it should contain the notification class name
@@ -89,7 +90,7 @@ test('it stores notifiable type and id from notifiable interface', function (): 
     $notification = $this->createMock(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn(['key' => 'value']);
 
-    $channel = new DatabaseChannel($connection, new FakeClock());
+    $channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));
     $channel->send($notifiable, $notification);
 
     // Index 2 = notifiable_type, Index 3 = notifiable_id
@@ -118,7 +119,7 @@ test('it JSON-encodes notification data from toDatabase()', function (): void {
         'order_id' => 123,
     ]);
 
-    $channel = new DatabaseChannel($connection, new FakeClock());
+    $channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));
     $channel->send($notifiable, $notification);
 
     // Index 4 = data (JSON)
@@ -144,7 +145,7 @@ test('it sets read_at to null for new notifications', function (): void {
     $notification = $this->createMock(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn(['key' => 'value']);
 
-    $channel = new DatabaseChannel($connection, new FakeClock());
+    $channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));
     $channel->send($notifiable, $notification);
 
     // Index 5 = read_at
@@ -163,6 +164,6 @@ test('it throws ChannelException when database insert fails', function (): void 
     $notification = $this->createMock(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn(['key' => 'value']);
 
-    $channel = new DatabaseChannel($connection, new FakeClock());
+    $channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));
     $channel->send($notifiable, $notification);
 })->throws(ChannelException::class, "Failed to deliver notification via 'database' channel.");

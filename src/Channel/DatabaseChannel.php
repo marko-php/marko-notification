@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Marko\Notification\Channel;
 
+use Marko\Database\Config\DatabaseTimezoneConfig;
 use Marko\Database\Connection\ConnectionInterface;
 use Marko\Notification\Contracts\BatchChannelInterface;
 use Marko\Notification\Contracts\ChannelInterface;
@@ -14,6 +15,10 @@ use Psr\Clock\ClockInterface;
 use Random\RandomException;
 use Throwable;
 
+/**
+ * Stores notifications in the notifications table. created_at is written in the
+ * database timezone (`database.timezone`, UTC by default).
+ */
 class DatabaseChannel implements ChannelInterface, BatchChannelInterface
 {
     /**
@@ -25,6 +30,7 @@ class DatabaseChannel implements ChannelInterface, BatchChannelInterface
     public function __construct(
         private ConnectionInterface $connection,
         private ClockInterface $clock,
+        private DatabaseTimezoneConfig $databaseTimezoneConfig,
     ) {}
 
     /**
@@ -48,7 +54,7 @@ class DatabaseChannel implements ChannelInterface, BatchChannelInterface
                     (string) $notifiable->getNotifiableId(),
                     json_encode($data, JSON_THROW_ON_ERROR),
                     null,
-                    $this->clock->now()->format('Y-m-d H:i:s'),
+                    $this->databaseTimezoneConfig->format($this->clock->now()),
                 ],
             );
         } catch (Throwable $e) {
@@ -84,7 +90,7 @@ class DatabaseChannel implements ChannelInterface, BatchChannelInterface
                     $bindings[] = (string) $notifiable->getNotifiableId();
                     $bindings[] = json_encode($data, JSON_THROW_ON_ERROR);
                     $bindings[] = null;
-                    $bindings[] = $this->clock->now()->format('Y-m-d H:i:s');
+                    $bindings[] = $this->databaseTimezoneConfig->format($this->clock->now());
                 }
 
                 $this->connection->execute($sql, $bindings);
