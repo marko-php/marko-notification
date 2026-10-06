@@ -22,6 +22,7 @@ test('it inserts notification record into database', function (): void {
     $capturedBindings = null;
 
     $connection = $this->createMock(ConnectionInterface::class);
+    $connection->method('quoteIdentifier')->willReturnCallback(fn (string $name): string => "\"$name\"");
     $connection->expects($this->once())
         ->method('execute')
         ->willReturnCallback(function (string $sql, array $bindings) use (&$capturedSql, &$capturedBindings) {
@@ -41,7 +42,7 @@ test('it inserts notification record into database', function (): void {
     $channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));
     $channel->send($notifiable, $notification);
 
-    expect($capturedSql)->toContain('INSERT INTO notifications')
+    expect($capturedSql)->toContain('INSERT INTO "notifications"')
         ->and($capturedBindings)->toBeArray()
         ->and($capturedBindings)->toHaveCount(7);
 });

@@ -27,6 +27,8 @@ class DatabaseChannel implements ChannelInterface, BatchChannelInterface
      */
     private const int ROWS_PER_CHUNK = 500;
 
+    private const string TABLE = 'notifications';
+
     public function __construct(
         private ConnectionInterface $connection,
         private ClockInterface $clock,
@@ -46,7 +48,7 @@ class DatabaseChannel implements ChannelInterface, BatchChannelInterface
 
         try {
             $this->connection->execute(
-                'INSERT INTO notifications (id, type, notifiable_type, notifiable_id, data, read_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                $this->insertInto() . '(?, ?, ?, ?, ?, ?, ?)',
                 [
                     $this->generateUuid(),
                     $notification::class,
@@ -79,7 +81,7 @@ class DatabaseChannel implements ChannelInterface, BatchChannelInterface
                 $placeholderRow = '(?, ?, ?, ?, ?, ?, ?)';
                 $placeholders = implode(', ', array_fill(0, count($chunk), $placeholderRow));
 
-                $sql = 'INSERT INTO notifications (id, type, notifiable_type, notifiable_id, data, read_at, created_at) VALUES ' . $placeholders;
+                $sql = $this->insertInto() . $placeholders;
 
                 $bindings = [];
                 foreach ($chunk as $notifiable) {
@@ -98,6 +100,15 @@ class DatabaseChannel implements ChannelInterface, BatchChannelInterface
                 throw ChannelException::deliveryFailed('database', $e->getMessage());
             }
         }
+    }
+
+    /**
+     * The INSERT statement up to its VALUES rows, with the table quoted for the connection's SQL dialect.
+     */
+    private function insertInto(): string
+    {
+        return 'INSERT INTO ' . $this->connection->quoteIdentifier(self::TABLE)
+            . ' (id, type, notifiable_type, notifiable_id, data, read_at, created_at) VALUES ';
     }
 
     /**
