@@ -12,6 +12,7 @@ use Marko\Notification\Contracts\ChannelInterface;
 use Marko\Notification\Contracts\NotifiableInterface;
 use Marko\Notification\Contracts\NotificationInterface;
 use Marko\Notification\Exceptions\ChannelException;
+use Marko\Testing\Fake\FakeClock;
 
 // Hand-written stub for ConnectionInterface that records execute() calls
 class BatchTestConnection implements ConnectionInterface
@@ -118,7 +119,7 @@ function makeNotification(array $data = ['message' => 'Hello']): NotificationInt
 
 test('it persists a notification for every recipient on the database channel', function (): void {
     $connection = new BatchTestConnection();
-    $channel = new DatabaseChannel($connection);
+    $channel = new DatabaseChannel($connection, new FakeClock());
     $notification = makeNotification();
 
     $notifiables = [
@@ -138,7 +139,7 @@ test('it persists a notification for every recipient on the database channel', f
 
 test('it issues a single multi-row insert when all recipients fit one chunk', function (): void {
     $connection = new BatchTestConnection();
-    $channel = new DatabaseChannel($connection);
+    $channel = new DatabaseChannel($connection, new FakeClock());
     $notification = makeNotification();
 
     $notifiables = [
@@ -154,7 +155,7 @@ test('it issues a single multi-row insert when all recipients fit one chunk', fu
 
 test('it issues one insert per chunk when recipients exceed the chunk size', function (): void {
     $connection = new BatchTestConnection();
-    $channel = new DatabaseChannel($connection);
+    $channel = new DatabaseChannel($connection, new FakeClock());
     $notification = makeNotification();
 
     // Create enough notifiables to exceed one chunk
@@ -174,7 +175,7 @@ test('it issues one insert per chunk when recipients exceed the chunk size', fun
 
 test('it writes the same column data per row as the single-recipient send', function (): void {
     $connection = new BatchTestConnection();
-    $channel = new DatabaseChannel($connection);
+    $channel = new DatabaseChannel($connection, new FakeClock());
     $notification = makeNotification(['key' => 'value', 'order_id' => 42]);
 
     $notifiable = makeBatchNotifiable(type: 'App\\Entity\\User', id: 99);
@@ -195,7 +196,7 @@ test('it writes the same column data per row as the single-recipient send', func
 
 test('it generates a distinct id for each persisted notification row', function (): void {
     $connection = new BatchTestConnection();
-    $channel = new DatabaseChannel($connection);
+    $channel = new DatabaseChannel($connection, new FakeClock());
     $notification = makeNotification();
 
     $notifiables = [
@@ -228,7 +229,7 @@ test('it wraps a batch insert failure in a channel exception', function (): void
         }
     };
 
-    $channel = new DatabaseChannel($connection);
+    $channel = new DatabaseChannel($connection, new FakeClock());
     $notification = makeNotification();
 
     $notifiables = [makeBatchNotifiable(id: 1), makeBatchNotifiable(id: 2)];

@@ -10,6 +10,7 @@ use Marko\Notification\Contracts\ChannelInterface;
 use Marko\Notification\Contracts\NotifiableInterface;
 use Marko\Notification\Contracts\NotificationInterface;
 use Marko\Notification\Exceptions\ChannelException;
+use Psr\Clock\ClockInterface;
 use Random\RandomException;
 use Throwable;
 
@@ -23,6 +24,7 @@ class DatabaseChannel implements ChannelInterface, BatchChannelInterface
 
     public function __construct(
         private ConnectionInterface $connection,
+        private ClockInterface $clock,
     ) {}
 
     /**
@@ -46,7 +48,7 @@ class DatabaseChannel implements ChannelInterface, BatchChannelInterface
                     (string) $notifiable->getNotifiableId(),
                     json_encode($data, JSON_THROW_ON_ERROR),
                     null,
-                    date('Y-m-d H:i:s'),
+                    $this->clock->now()->format('Y-m-d H:i:s'),
                 ],
             );
         } catch (Throwable $e) {
@@ -82,7 +84,7 @@ class DatabaseChannel implements ChannelInterface, BatchChannelInterface
                     $bindings[] = (string) $notifiable->getNotifiableId();
                     $bindings[] = json_encode($data, JSON_THROW_ON_ERROR);
                     $bindings[] = null;
-                    $bindings[] = date('Y-m-d H:i:s');
+                    $bindings[] = $this->clock->now()->format('Y-m-d H:i:s');
                 }
 
                 $this->connection->execute($sql, $bindings);
