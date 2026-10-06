@@ -19,6 +19,7 @@ use Marko\Queue\JobInterface;
 use Marko\Queue\QueueConfig;
 use Marko\Queue\QueueInterface;
 use Marko\Queue\Worker;
+use Marko\Testing\Fake\FakeClock;
 use Marko\Testing\Fake\FakeConfigRepository;
 
 class TestNotifiable implements NotifiableInterface
@@ -360,7 +361,14 @@ describe('SendNotificationJob serialization', function (): void {
             $queueConfig = createNotificationTestQueueConfig();
 
             // Drive through Worker::work() — NOT a manual setContainer() call
-            $worker = new Worker($workerQueue, $failedRepository, $queueConfig, $envelope, $container);
+            $worker = new Worker(
+                $workerQueue,
+                $failedRepository,
+                $queueConfig,
+                $envelope,
+                $container,
+                clock: new FakeClock(),
+            );
             $worker->work(once: true);
 
             // The notification was sent, proving Worker injected the container via ContainerAwareJobInterface gate
@@ -501,6 +509,7 @@ describe('SendNotificationJob final failure', function (): void {
                 createNotificationTestQueueConfig(),
                 createNotificationTestEnvelope(),
                 createUnserializableNotificationContainer(),
+                clock: new FakeClock(),
             );
             $stopJob->worker = $worker;
 
