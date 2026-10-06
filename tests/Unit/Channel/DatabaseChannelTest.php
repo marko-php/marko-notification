@@ -32,11 +32,11 @@ test('it inserts notification record into database', function (): void {
             return 1;
         });
 
-    $notifiable = $this->createMock(NotifiableInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
     $notifiable->method('getNotifiableType')->willReturn('App\\Entity\\User');
     $notifiable->method('getNotifiableId')->willReturn(42);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn(['message' => 'Hello']);
 
     $channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));
@@ -50,7 +50,7 @@ test('it inserts notification record into database', function (): void {
 test('it stores notification type as class name', function (): void {
     $capturedBindings = null;
 
-    $connection = $this->createMock(ConnectionInterface::class);
+    $connection = $this->createStub(ConnectionInterface::class);
     $connection->method('execute')
         ->willReturnCallback(function (string $sql, array $bindings) use (&$capturedBindings) {
             $capturedBindings = $bindings;
@@ -58,11 +58,11 @@ test('it stores notification type as class name', function (): void {
             return 1;
         });
 
-    $notifiable = $this->createMock(NotifiableInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
     $notifiable->method('getNotifiableType')->willReturn('App\\Entity\\User');
     $notifiable->method('getNotifiableId')->willReturn(1);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn(['key' => 'value']);
 
     $channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));
@@ -76,7 +76,7 @@ test('it stores notification type as class name', function (): void {
 test('it stores notifiable type and id from notifiable interface', function (): void {
     $capturedBindings = null;
 
-    $connection = $this->createMock(ConnectionInterface::class);
+    $connection = $this->createStub(ConnectionInterface::class);
     $connection->method('execute')
         ->willReturnCallback(function (string $sql, array $bindings) use (&$capturedBindings) {
             $capturedBindings = $bindings;
@@ -84,11 +84,11 @@ test('it stores notifiable type and id from notifiable interface', function (): 
             return 1;
         });
 
-    $notifiable = $this->createMock(NotifiableInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
     $notifiable->method('getNotifiableType')->willReturn('App\\Entity\\User');
     $notifiable->method('getNotifiableId')->willReturn(42);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn(['key' => 'value']);
 
     $channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));
@@ -102,7 +102,7 @@ test('it stores notifiable type and id from notifiable interface', function (): 
 test('it JSON-encodes notification data from toDatabase()', function (): void {
     $capturedBindings = null;
 
-    $connection = $this->createMock(ConnectionInterface::class);
+    $connection = $this->createStub(ConnectionInterface::class);
     $connection->method('execute')
         ->willReturnCallback(function (string $sql, array $bindings) use (&$capturedBindings) {
             $capturedBindings = $bindings;
@@ -110,11 +110,11 @@ test('it JSON-encodes notification data from toDatabase()', function (): void {
             return 1;
         });
 
-    $notifiable = $this->createMock(NotifiableInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
     $notifiable->method('getNotifiableType')->willReturn('App\\Entity\\User');
     $notifiable->method('getNotifiableId')->willReturn(1);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn([
         'message' => 'You have a new order',
         'order_id' => 123,
@@ -131,7 +131,7 @@ test('it JSON-encodes notification data from toDatabase()', function (): void {
 test('it sets read_at to null for new notifications', function (): void {
     $capturedBindings = null;
 
-    $connection = $this->createMock(ConnectionInterface::class);
+    $connection = $this->createStub(ConnectionInterface::class);
     $connection->method('execute')
         ->willReturnCallback(function (string $sql, array $bindings) use (&$capturedBindings) {
             $capturedBindings = $bindings;
@@ -139,11 +139,11 @@ test('it sets read_at to null for new notifications', function (): void {
             return 1;
         });
 
-    $notifiable = $this->createMock(NotifiableInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
     $notifiable->method('getNotifiableType')->willReturn('App\\Entity\\User');
     $notifiable->method('getNotifiableId')->willReturn(1);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn(['key' => 'value']);
 
     $channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));
@@ -154,15 +154,15 @@ test('it sets read_at to null for new notifications', function (): void {
 });
 
 test('it throws ChannelException when database insert fails', function (): void {
-    $connection = $this->createMock(ConnectionInterface::class);
+    $connection = $this->createStub(ConnectionInterface::class);
     $connection->method('execute')
         ->willThrowException(new RuntimeException('Connection lost'));
 
-    $notifiable = $this->createMock(NotifiableInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
     $notifiable->method('getNotifiableType')->willReturn('App\\Entity\\User');
     $notifiable->method('getNotifiableId')->willReturn(1);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn(['key' => 'value']);
 
     $channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));

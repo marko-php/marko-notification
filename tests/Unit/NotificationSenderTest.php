@@ -13,7 +13,7 @@ use Marko\Notification\NotificationSender;
 use Marko\Queue\QueueInterface;
 
 test('it sends notification to single notifiable across declared channels', function (): void {
-    $notifiable = $this->createMock(NotifiableInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
 
     $mailChannel = $this->createMock(ChannelInterface::class);
     $mailChannel->expects($this->once())
@@ -29,7 +29,7 @@ test('it sends notification to single notifiable across declared channels', func
     $manager->register('mail', $mailChannel);
     $manager->register('database', $dbChannel);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('channels')->willReturn(['mail', 'database']);
 
     $sender = new NotificationSender($manager);
@@ -37,8 +37,8 @@ test('it sends notification to single notifiable across declared channels', func
 });
 
 test('it sends notification to multiple notifiables', function (): void {
-    $notifiableA = $this->createMock(NotifiableInterface::class);
-    $notifiableB = $this->createMock(NotifiableInterface::class);
+    $notifiableA = $this->createStub(NotifiableInterface::class);
+    $notifiableB = $this->createStub(NotifiableInterface::class);
 
     $channel = $this->createMock(ChannelInterface::class);
     $channel->expects($this->exactly(2))->method('send');
@@ -46,7 +46,7 @@ test('it sends notification to multiple notifiables', function (): void {
     $manager = new NotificationManager();
     $manager->register('mail', $channel);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('channels')->willReturn(['mail']);
 
     $sender = new NotificationSender($manager);
@@ -54,8 +54,8 @@ test('it sends notification to multiple notifiables', function (): void {
 });
 
 test('it resolves channels from notification for each notifiable', function (): void {
-    $notifiableA = $this->createMock(NotifiableInterface::class);
-    $notifiableB = $this->createMock(NotifiableInterface::class);
+    $notifiableA = $this->createStub(NotifiableInterface::class);
+    $notifiableB = $this->createStub(NotifiableInterface::class);
 
     $mailChannel = $this->createMock(ChannelInterface::class);
     $mailChannel->expects($this->once())->method('send')->with($notifiableA, $this->anything());
@@ -67,7 +67,7 @@ test('it resolves channels from notification for each notifiable', function (): 
     $manager->register('mail', $mailChannel);
     $manager->register('database', $dbChannel);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('channels')
         ->willReturnCallback(fn (NotifiableInterface $n) => match (true) {
             $n === $notifiableA => ['mail'],
@@ -79,11 +79,11 @@ test('it resolves channels from notification for each notifiable', function (): 
 });
 
 test('it throws NotificationException when notification declares unknown channel', function (): void {
-    $notifiable = $this->createMock(NotifiableInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
 
     $manager = new NotificationManager();
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('channels')->willReturn(['sms']);
 
     $sender = new NotificationSender($manager);
@@ -91,8 +91,8 @@ test('it throws NotificationException when notification declares unknown channel
 })->throws(NotificationException::class, "Unknown notification channel 'sms'.");
 
 test('it throws NotificationException when queue is not available and queue() is called', function (): void {
-    $notifiable = $this->createMock(NotifiableInterface::class);
-    $notification = $this->createMock(NotificationInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
 
     $manager = new NotificationManager();
     $sender = new NotificationSender($manager);
@@ -101,8 +101,8 @@ test('it throws NotificationException when queue is not available and queue() is
 })->throws(NotificationException::class, 'No queue implementation available');
 
 test('it queues notification via QueueInterface when available', function (): void {
-    $notifiable = $this->createMock(NotifiableInterface::class);
-    $notification = $this->createMock(NotificationInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
 
     $queue = $this->createMock(QueueInterface::class);
     $queue->expects($this->once())
@@ -117,8 +117,8 @@ test('it queues notification via QueueInterface when available', function (): vo
 });
 
 test('it falls back to per-recipient send for channels without batch support', function (): void {
-    $notifiableA = $this->createMock(NotifiableInterface::class);
-    $notifiableB = $this->createMock(NotifiableInterface::class);
+    $notifiableA = $this->createStub(NotifiableInterface::class);
+    $notifiableB = $this->createStub(NotifiableInterface::class);
 
     // Plain ChannelInterface (not BatchChannelInterface) — expects 2 individual send() calls
     $channel = $this->createMock(ChannelInterface::class);
@@ -127,7 +127,7 @@ test('it falls back to per-recipient send for channels without batch support', f
     $manager = new NotificationManager();
     $manager->register('database', $channel);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('channels')->willReturn(['database']);
 
     $sender = new NotificationSender($manager);
@@ -135,9 +135,9 @@ test('it falls back to per-recipient send for channels without batch support', f
 });
 
 test('it wraps channel delivery failures in ChannelException', function (): void {
-    $notifiable = $this->createMock(NotifiableInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
 
-    $channel = $this->createMock(ChannelInterface::class);
+    $channel = $this->createStub(ChannelInterface::class);
     $channel->method('send')->willThrowException(
         ChannelException::deliveryFailed('mail', 'Connection refused'),
     );
@@ -145,7 +145,7 @@ test('it wraps channel delivery failures in ChannelException', function (): void
     $manager = new NotificationManager();
     $manager->register('mail', $channel);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('channels')->willReturn(['mail']);
 
     $sender = new NotificationSender($manager);

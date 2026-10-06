@@ -26,9 +26,9 @@ test('it sends notification mail message via mailer', function (): void {
         ->with($this->callback(fn (Message $msg) => $msg->subject === 'Test'))
         ->willReturn(true);
 
-    $notifiable = $this->createMock(NotifiableInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toMail')->willReturn($message);
 
     $channel = new MailChannel($mailer);
@@ -49,7 +49,7 @@ test('it resolves recipient from notifiable when message has no to address', fun
         ->with('mail')
         ->willReturn('resolved@example.com');
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toMail')->willReturn($message);
 
     $channel = new MailChannel($mailer);
@@ -71,7 +71,7 @@ test('it uses message to address when already set', function (): void {
     // routeNotificationFor should NOT be called when to is already set
     $notifiable->expects($this->never())->method('routeNotificationFor');
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toMail')->willReturn($message);
 
     $channel = new MailChannel($mailer);
@@ -81,13 +81,13 @@ test('it uses message to address when already set', function (): void {
 test('it throws ChannelException when notifiable has no mail route', function (): void {
     $message = Message::create()->subject('Test');
 
-    $mailer = $this->createMock(MailerInterface::class);
+    $mailer = $this->createStub(MailerInterface::class);
 
     $notifiable = $this->createMock(NotifiableInterface::class);
     $notifiable->method('routeNotificationFor')->with('mail')->willReturn(null);
     $notifiable->method('getNotifiableType')->willReturn('App\\Entity\\User');
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toMail')->willReturn($message);
 
     $channel = new MailChannel($mailer);
@@ -97,14 +97,14 @@ test('it throws ChannelException when notifiable has no mail route', function ()
 test('it throws ChannelException when mailer transport fails', function (): void {
     $message = Message::create()->to('user@example.com')->subject('Test');
 
-    $mailer = $this->createMock(MailerInterface::class);
+    $mailer = $this->createStub(MailerInterface::class);
     $mailer->method('send')->willThrowException(
         TransportException::connectionFailed('smtp.example.com', 587),
     );
 
-    $notifiable = $this->createMock(NotifiableInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toMail')->willReturn($message);
 
     $channel = new MailChannel($mailer);

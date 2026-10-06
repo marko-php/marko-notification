@@ -8,7 +8,7 @@ use Marko\Notification\NotificationManager;
 
 test('it registers a channel by name', function (): void {
     $manager = new NotificationManager();
-    $channel = $this->createMock(ChannelInterface::class);
+    $channel = $this->createStub(ChannelInterface::class);
 
     $manager->register('mail', $channel);
 
@@ -17,7 +17,7 @@ test('it registers a channel by name', function (): void {
 
 test('it resolves a registered channel by name', function (): void {
     $manager = new NotificationManager();
-    $channel = $this->createMock(ChannelInterface::class);
+    $channel = $this->createStub(ChannelInterface::class);
 
     $manager->register('mail', $channel);
 
@@ -32,7 +32,7 @@ test('it throws NotificationException for unknown channel name', function (): vo
 
 test('it reports whether a channel is registered via hasChannel', function (): void {
     $manager = new NotificationManager();
-    $channel = $this->createMock(ChannelInterface::class);
+    $channel = $this->createStub(ChannelInterface::class);
 
     expect($manager->hasChannel('mail'))->toBeFalse();
 
@@ -44,8 +44,8 @@ test('it reports whether a channel is registered via hasChannel', function (): v
 
 test('it returns all registered channel names', function (): void {
     $manager = new NotificationManager();
-    $mailChannel = $this->createMock(ChannelInterface::class);
-    $dbChannel = $this->createMock(ChannelInterface::class);
+    $mailChannel = $this->createStub(ChannelInterface::class);
+    $dbChannel = $this->createStub(ChannelInterface::class);
 
     expect($manager->getRegisteredChannels())->toBe([]);
 
@@ -57,8 +57,8 @@ test('it returns all registered channel names', function (): void {
 
 test('it replaces channel when registering same name twice', function (): void {
     $manager = new NotificationManager();
-    $channelA = $this->createMock(ChannelInterface::class);
-    $channelB = $this->createMock(ChannelInterface::class);
+    $channelA = $this->createStub(ChannelInterface::class);
+    $channelB = $this->createStub(ChannelInterface::class);
 
     $manager->register('mail', $channelA);
     $manager->register('mail', $channelB);

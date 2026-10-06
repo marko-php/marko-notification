@@ -17,17 +17,17 @@ use Marko\Testing\Fake\FakeClock;
 describe('DatabaseChannel identifier quoting', function (): void {
     beforeEach(function (): void {
         $this->statements = [];
-        $connection = $this->createMock(ConnectionInterface::class);
+        $connection = $this->createStub(ConnectionInterface::class);
         $connection->method('quoteIdentifier')->willReturnCallback(fn (string $name): string => "`$name`");
         $connection->method('execute')->willReturnCallback(function (string $sql): int {
             $this->statements[] = $sql;
 
             return 1;
         });
-        $this->notifiable = $this->createMock(NotifiableInterface::class);
+        $this->notifiable = $this->createStub(NotifiableInterface::class);
         $this->notifiable->method('getNotifiableType')->willReturn('App\\Entity\\User');
         $this->notifiable->method('getNotifiableId')->willReturn(42);
-        $this->notification = $this->createMock(NotificationInterface::class);
+        $this->notification = $this->createStub(NotificationInterface::class);
         $this->notification->method('toDatabase')->willReturn(['message' => 'Hello']);
         $this->channel = new DatabaseChannel($connection, new FakeClock(), DatabaseTimezoneConfig::fromName('UTC'));
     });

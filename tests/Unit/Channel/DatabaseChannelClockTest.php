@@ -12,7 +12,7 @@ use Marko\Testing\Fake\FakeClock;
 test('it stores created_at in the database timezone whatever the clock timezone', function (): void {
     $capturedBindings = null;
 
-    $connection = $this->createMock(ConnectionInterface::class);
+    $connection = $this->createStub(ConnectionInterface::class);
     $connection->method('execute')
         ->willReturnCallback(function (string $sql, array $bindings) use (&$capturedBindings) {
             $capturedBindings = $bindings;
@@ -20,11 +20,11 @@ test('it stores created_at in the database timezone whatever the clock timezone'
             return 1;
         });
 
-    $notifiable = $this->createMock(NotifiableInterface::class);
+    $notifiable = $this->createStub(NotifiableInterface::class);
     $notifiable->method('getNotifiableType')->willReturn('App\\Entity\\User');
     $notifiable->method('getNotifiableId')->willReturn(42);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn([]);
 
     $channel = new DatabaseChannel(
@@ -40,7 +40,7 @@ test('it stores created_at in the database timezone whatever the clock timezone'
 test('it stores created_at in the database timezone for batched notifications', function (): void {
     $captured = [];
 
-    $connection = $this->createMock(ConnectionInterface::class);
+    $connection = $this->createStub(ConnectionInterface::class);
     $connection->method('execute')
         ->willReturnCallback(function (string $sql, array $bindings) use (&$captured) {
             $captured[] = $bindings;
@@ -48,15 +48,15 @@ test('it stores created_at in the database timezone for batched notifications', 
             return 2;
         });
 
-    $first = $this->createMock(NotifiableInterface::class);
+    $first = $this->createStub(NotifiableInterface::class);
     $first->method('getNotifiableType')->willReturn('App\\Entity\\User');
     $first->method('getNotifiableId')->willReturn(1);
 
-    $second = $this->createMock(NotifiableInterface::class);
+    $second = $this->createStub(NotifiableInterface::class);
     $second->method('getNotifiableType')->willReturn('App\\Entity\\User');
     $second->method('getNotifiableId')->willReturn(2);
 
-    $notification = $this->createMock(NotificationInterface::class);
+    $notification = $this->createStub(NotificationInterface::class);
     $notification->method('toDatabase')->willReturn([]);
 
     $channel = new DatabaseChannel(
