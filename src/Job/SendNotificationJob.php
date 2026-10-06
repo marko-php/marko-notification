@@ -33,6 +33,11 @@ class SendNotificationJob extends Job implements ContainerAwareJobInterface
         // Not needed for this job — HMAC envelope is only for AsyncObserverJob event data
     }
 
+    public function releaseContainer(): void
+    {
+        $this->container = null;
+    }
+
     /**
      * @throws RuntimeException
      */

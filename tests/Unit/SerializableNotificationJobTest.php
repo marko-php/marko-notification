@@ -369,3 +369,158 @@ describe('SendNotificationJob serialization', function (): void {
         },
     );
 });
+
+/**
+ * Pops the given jobs in order and records which job IDs the worker deleted.
+ */
+class NotificationFinalFailureQueue implements QueueInterface
+{
+    /** @var list<string> */
+    public array $deleted = [];
+
+    /**
+     * @param list<JobInterface> $jobs
+     */
+    public function __construct(
+        private array $jobs,
+    ) {}
+
+    public function push(
+        JobInterface $job,
+        ?string $queue = null,
+    ): string {
+        return 'unused';
+    }
+
+    public function later(
+        int $delay,
+        JobInterface $job,
+        ?string $queue = null,
+    ): string {
+        return 'unused';
+    }
+
+    public function pop(?string $queue = null): ?JobInterface
+    {
+        return array_shift($this->jobs);
+    }
+
+    public function size(?string $queue = null): int
+    {
+        return count($this->jobs);
+    }
+
+    public function clear(?string $queue = null): int
+    {
+        return 0;
+    }
+
+    public function delete(string $jobId): bool
+    {
+        $this->deleted[] = $jobId;
+
+        return true;
+    }
+
+    public function release(
+        string $jobId,
+        int $delay = 0,
+    ): bool {
+        return true;
+    }
+}
+
+/**
+ * Stops the worker when it runs, so a test can prove the worker survived the jobs before it.
+ */
+class NotificationStopWorkerJob extends Job
+{
+    public ?Worker $worker = null;
+
+    public function handle(): void
+    {
+        $this->worker?->stop();
+    }
+}
+
+/**
+ * A container that cannot be serialized (anonymous class) and resolves nothing.
+ */
+function createUnserializableNotificationContainer(): ContainerInterface
+{
+    return new class () implements ContainerInterface
+    {
+        public function get(string $id): never
+        {
+            throw new RuntimeException("Notification sender unavailable: $id");
+        }
+
+        public function has(string $id): bool
+        {
+            return false;
+        }
+
+        public function singleton(string $id): void {}
+
+        public function instance(
+            string $id,
+            object $instance,
+        ): void {}
+
+        public function call(Closure $callable): mixed
+        {
+            return null;
+        }
+
+        public function resolvedInstances(?string $interface = null): array
+        {
+            return [];
+        }
+    };
+}
+
+describe('SendNotificationJob final failure', function (): void {
+    it(
+        'stores a SendNotificationJob that fails for the last time in the failed-job repository and keeps the worker running',
+        function (): void {
+            $job = new SendNotificationJob(new TestNotifiable(), new TestNotification());
+            $job->setId('notification-final-failure');
+            // queue.max_attempts is 3: this run is the job's last attempt
+            $job->incrementAttempts();
+            $job->incrementAttempts();
+
+            $stopJob = new NotificationStopWorkerJob();
+            $stopJob->setId('stop-worker');
+
+            $queue = new NotificationFinalFailureQueue([$job, $stopJob]);
+            $failedRepository = createNotificationTestFailedJobRepository();
+
+            $worker = new Worker(
+                $queue,
+                $failedRepository,
+                createNotificationTestQueueConfig(),
+                createNotificationTestEnvelope(),
+                createUnserializableNotificationContainer(),
+            );
+            $stopJob->worker = $worker;
+
+            $worker->work();
+
+            $failedJob = $failedRepository->find('notification-final-failure');
+            $stored = Job::unserialize(createNotificationTestEnvelope()->verifyAndUnwrap($failedJob->payload));
+
+            expect($failedJob->exception)->toContain('Notification sender unavailable')
+                ->and($stored)->toBeInstanceOf(SendNotificationJob::class)
+                ->and($queue->deleted)->toBe(['notification-final-failure', 'stop-worker']);
+        },
+    );
+
+    it('releases the container from SendNotificationJob when releaseContainer is called', function (): void {
+        $job = new SendNotificationJob(new TestNotifiable(), new TestNotification());
+        $job->setContainer(createUnserializableNotificationContainer());
+
+        $job->releaseContainer();
+
+        expect(fn () => $job->handle())->toThrow(RuntimeException::class, 'without a container');
+    });
+});
